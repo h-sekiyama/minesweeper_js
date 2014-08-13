@@ -1,56 +1,56 @@
-.cell {
+#cell_list {
   width: 270px;
   height: 270px;
   margin: 3px auto;
 }
-.cell > div {
+#cell_list > ul > li {
   width: 30px;
   height: 30px;
   display: inline-block;
   margin: -4px 0;
   -webkit-box-sizing: border-box;
 }
-.cell__0 {
+#cell_list__0 {
   background: url("../images.gif");
   background-position: 0 0;
 }
-.cell__1 {
+#cell_list__1 {
   background: url("../images.gif");
   background-position: -30px 0;
 }
-.cell__2 {
+#cell_list__2 {
   background: url("../images.gif");
   background-position: -60px 0;
 }
-.cell__3 {
+#cell_list__3 {
   background: url("../images.gif");
   background-position: -90px 0;
 }
-.cell__4 {
+#cell_list__4 {
   background: url("../images.gif");
   background-position: -120px 0;
 }
-.cell__5 {
+#cell_list__5 {
   background: url("../images.gif");
   background-position: -150px 0;
 }
-.cell__6 {
+#cell_list__6 {
   background: url("../images.gif");
   background-position: -180px 0;
 }
-.cell__7 {
+#cell_list__7 {
   background: url("../images.gif");
   background-position: -210px 0;
 }
-.cell__8 {
+#cell_list__8 {
   background: url("../images.gif");
   background-position: -240px 0;
 }
-.cell__9 {
+#cell_list__9 {
   background: url("../images.gif");
   background-position: -270px 0;
 }
-.cell__99 {
+#cell_list__99 {
   background: url("../images.gif");
   background-position: -300px 0;
 }

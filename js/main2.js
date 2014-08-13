@@ -9,9 +9,9 @@ var MINESWEEPER = MINESWEEPER || {};
  * CellModelで初期値を設定
  * CellCollectionで、爆弾設置と各Cellのtypeとgroupを設定
  */
-(function(win){
-    var ns = win.MINESWEEPER || {};
- 
+(function(window){
+    var ns = window.MINESWEEPER || {};
+
     ns.CellModel = Backbone.Model.extend({
         defaults: {
             cellType: 0,
@@ -19,9 +19,9 @@ var MINESWEEPER = MINESWEEPER || {};
             isOpened: false
         }
     });
- 
+
     ns.CellCollection = Backbone.Collection.extend({
-        model: CellModel,
+        model: ns.CellModel,
         properties: {
             cellX: 9,
             cellY: 9,
@@ -38,13 +38,15 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         setMines: function(){
             // 爆弾設置
-            
+
         },
         setCellType: function(){
             // cellType設定
+
         },
         setGroup: function(){
             // group設定
+
         }
     });
 })(this);
@@ -54,8 +56,8 @@ var MINESWEEPER = MINESWEEPER || {};
  * 
  * CellのDOM生成とイベント設定、表示変更
  */
-(function(win){
-    var ns = win.MINESWEEPER || {};
+(function(window){
+    var ns = window.MINESWEEPER || {};
  
     ns.CellView = Backbone.View.extend({
         el: 'li',
@@ -74,7 +76,10 @@ var MINESWEEPER = MINESWEEPER || {};
         open: function(){
             this.$el.addClass('opened');
         },
-        template: _.template('<%= cardType!=99 ? cardType : < %>'),
+        cellClick: function(){
+
+        },
+        template: _.template( $('#list-template').html() ),
         render: function(){
             this.$el.html(this.template(this.model.toJSON()));
             return this;
@@ -90,8 +95,8 @@ var MINESWEEPER = MINESWEEPER || {};
  *    同一groupのisOpendプロパティをtrue化
  *    cellTypeが地雷だったらburstイベントを発行
  */
-(function(win){
-    var ns = win.MINESWEEPER || {};
+(function(window){
+    var ns = window.MINESWEEPER || {};
  
     ns.CellListView = Backbone.View.extend({
         initialize: function(options){
@@ -130,8 +135,8 @@ var MINESWEEPER = MINESWEEPER || {};
  * カウントアップの開始と停止
  * 
  */
-(function(win){
-    var ns = win.MINESWEEPER || {};
+(function(window){
+    var ns = window.MINESWEEPER || {};
  
     ns.TimeStatusView = Backbone.View.extend({
         properties: {
@@ -143,12 +148,12 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         start: function(){
             var self = this;
-            this.properties.timerId = win.setTimeout(function(){
+            this.properties.timerId = window.setTimeout(function(){
                 self.countUp();
             }, 1000);
         },
         stop: function(){
-            win.clearInterval(this.properties.timerId);
+            window.clearInterval(this.properties.timerId);
         },
         countUp: function(){
             var prop = this.properties;
@@ -175,8 +180,8 @@ var MINESWEEPER = MINESWEEPER || {};
  * 　└CellView
  * 
  */
-(function(win){
-    var ns = win.MINESWEEPER || {},
+(function(window){
+    var ns = window.MINESWEEPER || {},
         prop;
  
     ns.GameController = Backbone.View.extend({
@@ -189,13 +194,14 @@ var MINESWEEPER = MINESWEEPER || {};
             this.initTimeStatusView();
         },
         initCellListView: function(){
-            this.cellListView = new CellListView({
+            this.cellListView = new ns.CellListView({
                 el: this.options.cellListEl
             });
             this.cellListView.on('burst', this.gameOver);
+            console.log(this.cellListView);
         },
         initTimeStatusView: function(){
-            this.timeStatusView = new TimeStatusView({
+            this.timeStatusView = new ns.TimeStatusView({
                 el: this.options.timeStatusEl
             });
             // this.timeStatusView.on('timeOver', this.gameOver);
@@ -215,7 +221,7 @@ var MINESWEEPER = MINESWEEPER || {};
 /**
  * GameController起動
  */
-(function(win){
+(function(window){
     var gameController = new MINESWEEPER.GameController({
         el: $('#minesweeper'),
         cellListEl: $('#cell_list'),
