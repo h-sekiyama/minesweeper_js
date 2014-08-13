@@ -42,7 +42,7 @@ MineSweeper.prototype = {
 
 	//爆弾の配置
 	setBomb: function() {
-		while(this.bomb_cnt != 0) {
+		while(this.bomb_cnt !== 0) {
 			r = Math.round(Math.random() * this.cell_stat.length);
 			if(this.cell_stat[r] != 99) {
 				this.cell_stat[r] = 99;
@@ -56,7 +56,7 @@ MineSweeper.prototype = {
 		for(num = 0; num < this.cell_num_all ; num++) {
 			if(this.cell_stat[num] != 99) {
 				tmp_bomb_cnt = 0;	//爆弾数カウント一時変数
-				if(num - (this.cell_cnt_x + 1) >= 0 && num % this.cell_cnt_x != 0) {	//左上のセルをチェック
+				if(num - (this.cell_cnt_x + 1) >= 0 && num % this.cell_cnt_x !== 0) {	//左上のセルをチェック
 					if(this.cell_stat[num - (this.cell_cnt_x + 1)] == 99) {
 						tmp_bomb_cnt++;
 					}
@@ -66,22 +66,22 @@ MineSweeper.prototype = {
 						tmp_bomb_cnt++;
 					}
 				}
-				if(num - (this.cell_cnt_x - 1) >= 0 && (num + 1) % this.cell_cnt_x != 0) {	//右上のセルをチェック
+				if(num - (this.cell_cnt_x - 1) >= 0 && (num + 1) % this.cell_cnt_x !== 0) {	//右上のセルをチェック
 					if(this.cell_stat[num - (this.cell_cnt_x - 1)] == 99) {
 						tmp_bomb_cnt++;
 					}
 				}
-				if(num - 1 >= 0 && num % this.cell_cnt_x != 0) {	//左のセルをチェック
+				if(num - 1 >= 0 && num % this.cell_cnt_x !== 0) {	//左のセルをチェック
 					if(this.cell_stat[num - 1] == 99) {
 						tmp_bomb_cnt++;
 					}
 				}
-				if(num + 1 < this.cell_num_all && (num + 1) % this.cell_cnt_x != 0) {	//右のセルをチェック
+				if(num + 1 < this.cell_num_all && (num + 1) % this.cell_cnt_x !== 0) {	//右のセルをチェック
 					if(this.cell_stat[num + 1] == 99) {
 						tmp_bomb_cnt++;
 					}
 				}
-				if(num + (this.cell_cnt_x - 1) < this.cell_num_all && num % this.cell_cnt_x != 0) {	//左下のセルをチェック
+				if(num + (this.cell_cnt_x - 1) < this.cell_num_all && num % this.cell_cnt_x !== 0) {	//左下のセルをチェック
 					if(this.cell_stat[num + (this.cell_cnt_x - 1)] == 99) {
 						tmp_bomb_cnt++;
 					}
@@ -91,7 +91,7 @@ MineSweeper.prototype = {
 						tmp_bomb_cnt++;
 					}
 				}
-				if(num + (this.cell_cnt_x + 1) < this.cell_num_all && (num + 1) % this.cell_cnt_x != 0) {	//右下のセルをチェック
+				if(num + (this.cell_cnt_x + 1) < this.cell_num_all && (num + 1) % this.cell_cnt_x !== 0) {	//右下のセルをチェック
 					if(this.cell_stat[num + (this.cell_cnt_x + 1)] == 99) {
 						tmp_bomb_cnt++;
 					}
@@ -180,7 +180,7 @@ var tapCell = function() {
 		clearInterval(timerID);
 		$('#game_over').html('<span style="color:green;">クリア！</span>');
 	}
-}
+};
 
 $(function() {
 	game = new MineSweeper(9, 9, 10);
