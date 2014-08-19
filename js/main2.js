@@ -38,15 +38,15 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         setMines: function(){
             // 爆弾設置
-
+            console.log(this.properties);
         },
         setCellType: function(){
             // cellType設定
-
+            this.add({cellType: 1});
         },
         setGroup: function(){
             // group設定
-
+            this.add({group: 0});
         }
     });
 })(this);
@@ -68,7 +68,7 @@ var MINESWEEPER = MINESWEEPER || {};
             'click': 'clickHandler',
         },
         modelEvents: function(){
-            this.model.on('change:isOpened', $.proxy(this.open, this));
+            this.on('change:isOpened', $.proxy(this.open, this));
         },
         clickHandler: function(event){
             this.trigger('cellClick', event, this);
@@ -101,12 +101,13 @@ var MINESWEEPER = MINESWEEPER || {};
     ns.CellListView = Backbone.View.extend({
         initialize: function(options){
             this.collection = new ns.CellCollection();
+            console.log(this.collection);
             this.render();
         },
         render: function(){
             var lis = [];
             _(this.collection).each(function(index, model){
-                lis[index] = new CellView(model);
+                lis[index] = new ns.CellView(model);
                 lis[index].$el.on('cellClick', this.cellClickHandler);
             }, this);
             this.$el.append(lis);
@@ -198,7 +199,6 @@ var MINESWEEPER = MINESWEEPER || {};
                 el: this.options.cellListEl
             });
             this.cellListView.on('burst', this.gameOver);
-            console.log(this.cellListView);
         },
         initTimeStatusView: function(){
             this.timeStatusView = new ns.TimeStatusView({
