@@ -7,16 +7,16 @@ var MINESWEEPER = MINESWEEPER || {};
  * CellのModel
  * 
  * CellModelで初期値を設定
- * CellCollectionで、爆弾設置と各Cellのtypeとgroupを設定
+ * CellCollectionで、爆弾設置と各Cellのtypeを設定
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
 
     ns.CellModel = Backbone.Model.extend({
         defaults: {
-            cellType: 0,    //0:通常,1〜8:周囲に爆弾あり,9:タップ済,99爆弾
-            group: 0,
-            isOpened: false
+            cellType: 0,    //0:通常,1〜8:周囲に爆弾あり,9:タップ済,99:爆弾,100:旗
+            isOpened: false,
+            flaged: false
         }
     });
 
@@ -26,6 +26,7 @@ var MINESWEEPER = MINESWEEPER || {};
             cellX: 9,   //列の数
             cellY: 9,   //行の数
             mines: 10,  //爆弾の数
+            openedCount: 0 //開かれたセルの数
         },
         initialize: function() {
             this.models = this.createCellModels();
@@ -39,15 +40,13 @@ var MINESWEEPER = MINESWEEPER || {};
             this.setCellType();
             var num = 0;
             var loop = 1;
-            var group = 0;
-            this.setGroup(num, loop, group);
             return this.models;
         },
         setMines: function() {
             // 爆弾設置
             var mine_tmp = this.properties.mines;
-            while(mine_tmp !==0) {
-                var r = Math.round(Math.random() * this.length -1);
+            while(mine_tmp !== 0) {
+                var r = Math.ceil(Math.random() * this.length - 1);
                 if(this.models[r].get('cellType') != 99) {
                     this.models[r].set('cellType',99);
                     mine_tmp --;
@@ -109,59 +108,6 @@ var MINESWEEPER = MINESWEEPER || {};
                 }
                 tmp_bomb_cnt = 0;
             }
-        },
-        setGroup: function(num, loop, group) {
-            // group設定
-            var cell_cnt_x = this.properties.cellX;
-            var cell_cnt_y = this.properties.cellY;
-            loop_label: while(1) {         
-                // console.log('num=' + num);
-                // console.log('loop=' + loop);
-                // console.log('group=' + group);
-                for(num; num < loop; num++) {
-                    if(this.models[num].get('cellType') == 9) {
-                        this.models[num].set('group',group);
-                        if(num - cell_cnt_x >= 0) {    //上のセルをチェック
-                            this.models[num - cell_cnt_x].set('group', group);
-                            if(this.models[num - cell_cnt_x].get('cellType') == 9) {
-                                // console.log('上group ' + this.models[num - cell_cnt_x].get('group'));
-                                if(this.models[num - cell_cnt_x].get('group') === 0) {
-                                    this.setGroup(num - cell_cnt_x, loop, group);
-                                }
-                            }
-                        }
-                        if(num - 1 >= 0 && num % cell_cnt_x !== 0) {   //左のセルをチェック
-                            this.models[num - 1].set('group', group);
-                            if(this.models[num - 1].get('cellType') == 9) {
-                                // console.log('左group ' + this.models[num - 1].get('group'));
-                                if(this.models[num - 1].get('group') === 0) {
-                                    this.setGroup(num - 1, loop, group);
-                                }
-                            }
-                        }
-                        if(num + 1 < this.length && (num + 1) % cell_cnt_x !== 0) {  //右のセルをチェック
-                            this.models[num + 1].set('group', group);
-                            if(this.models[num + 1].get('cellType') == 9) {
-                                // console.log('右group ' + this.models[num + 1].get('group'));
-                                if(this.models[num + 1].get('group') === 0) {
-                                    this.setGroup(num + 1, loop, group);
-                                }
-                            }
-                        }
-                        if(num + cell_cnt_x < this.length) { //下のセルをチェック
-                            this.models[num + cell_cnt_x].set('group', group);
-                            if(this.models[num + cell_cnt_x].get('cellType') == 9) {
-                                // console.log('下group ' + this.models[num + cell_cnt_x].get('group'));
-                                if(this.models[num + cell_cnt_x].get('group') === 0) {
-                                    this.setGroup(num + cell_cnt_x, loop, group);
-                                }
-                            }
-                        }
-                    }
-                }
-                group ++;
-                if(num >= loop) break;
-            }
         }
     });
 })(this);
@@ -171,16 +117,33 @@ var MINESWEEPER = MINESWEEPER || {};
  * 
  * CellのDOM生成とイベント設定、表示変更
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
 
     ns.CellView = Backbone.View.extend({
         tagName: 'li',
         className: 'cell',
-        initialize: function(options){
+        initialize: function(options) {
+            var self = this;
             this.model = options;
             this.modelEvents();
             this.render();
+            var interval = 300;
+            //旗を立てる処理（セル長押しでイベント発生）
+            this.$el.bind('touchstart',function() {
+                if(self.model.get('isOpened') == false) {
+                    timer = setTimeout(function() {
+                        self.trigger('cellHold', event, self);
+                        self.$el.off('click');  //旗消去と同時にclickイベントが発生しない様に一旦イベントをアンバインドする
+                        setTimeout(function() {self.$el.on('click',$.proxy(self.clickHandler, self))}, 400);    //時間差でclickイベント復活
+                    }, interval);
+
+                    function clearFunction() {
+                        clearTimeout(timer);
+                    }
+                    self.$el.bind('touchend touchmove touchcancel', clearFunction);
+                }
+            });
         },
         events: {
             'click': 'clickHandler',
@@ -188,13 +151,16 @@ var MINESWEEPER = MINESWEEPER || {};
         modelEvents: function() {
             this.on('open', $.proxy(this.open, this));
         },
-        clickHandler: function(event){
-            this.trigger('cellClick', event, this);
-            this.$el.attr('class', this.render().className);
-            this.trigger('open');
+        clickHandler: function(event) {
+            if(this.model.get('flaged') == false) {
+                this.trigger('cellClick', event, this);
+                this.$el.attr('class', this.render().className);
+                this.trigger('open');
+            }
         },
         open: function() {
             this.$el.addClass('opened');
+            this.model.set('isOpened', true);
         },
         render: function() {
             return this;
@@ -207,40 +173,97 @@ var MINESWEEPER = MINESWEEPER || {};
  * 
  * Collectionを初期化し、各Cellをレンダリング
  * Cellのclickイベントをハンドリング
- *    同一groupのisOpendプロパティをtrue化
+ *    cellType==9（安全）の場合、cellTypeが地雷じゃない周辺のグループを一気に開放
  *    cellTypeが地雷だったらburstイベントを発行
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
  
     ns.CellListView = Backbone.View.extend({
-        initialize: function(){
+        initialize: function() {
             this.collection = new ns.CellCollection();
             this.render();
         },
         render: function() {
             var lis = [];
-            _.each(this.collection,function(i,id,model){
+            _.each(this.collection,function(i,id,model) {
                 lis[id] = new ns.CellView(model.models[id]);
                 lis[id].on('cellClick', this.cellClickHandler);
+                if(lis[id].model.get('cellType') === 9) {
+                    lis[id].on('cellClick', this.cellGroupOpen);
+                }
+                lis[id].on('cellHold', this.cellHoldHandler);
                 this.$el.append(lis[id].el);
             }, this);
         },
-        cellClickHandler: function(event, cellView){
-            if(cellView.model.get('cellType') === 99){
+        cellClickHandler: function(event, cellView) {
+            cellView.className = 'cell cell_type_' + cellView.model.get('cellType');
+            if(this.model.get('isOpened') == false) {
+                this.collection.properties.openedCount ++;
+            }
+            if(cellView.model.get('cellType') === 99) {
                 this.collection.trigger('burst');
             }
-            cellView.className = 'cell cell_type_' + cellView.model.get('cellType');
-
-            // this.cellGroupOpen();
+            console.log(this.collection.properties.openedCount);
+            if(((this.collection.properties.cellX * this.collection.properties.cellY) - this.collection.properties.mines) + 1 == this.collection.properties.openedCount) {
+                this.collection.trigger('clear');
+            }
         },
-        cellGroupOpen: function(cellView){
-            var group = cellView.model.get('group');
-            _(this.collection).each(function(model, index){
-                if(model.get('group')===group){
-                    model.set('isOpened', true);
+        cellHoldHandler: function(event, cellView) {
+            if(cellView.model.get('flaged') == false) {
+                cellView.$el.attr('class','cell cell_type_100');
+                cellView.model.set('flaged',true);
+            } else {
+                cellView.$el.attr('class','cell cell_type_0');
+                cellView.model.set('flaged',false);
+            }
+        },
+        cellGroupOpen: function() {
+            var cell_cnt_x = this.collection.properties.cellX;
+            var cell_cnt_y = this.collection.properties.cellY;
+            var id = this.model.get('id');
+            (function checkAround(self, id) {
+                if(id - cell_cnt_x >= 0) {    //上のセルをチェック
+                    if(self.collection.models[id - cell_cnt_x].get('cellType') != 99 && self.collection.models[id - cell_cnt_x].get('isOpened') == false) {
+                        self.collection.models[id - cell_cnt_x].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id - cell_cnt_x)).attr('class','cell cell_type_' + self.collection.models[id - cell_cnt_x].get('cellType'));
+                        if(self.collection.models[id - cell_cnt_x].get('cellType') == 9) {
+                            checkAround(self, id - cell_cnt_x);
+                        }
+                    }
                 }
-            }, this);
+                if(id - 1 >= 0 && id % cell_cnt_x !== 0) {    //左のセルをチェック
+                    if(self.collection.models[id - 1].get('cellType') != 99 && self.collection.models[id - 1].get('isOpened') == false) {
+                        self.collection.models[id - 1].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id - 1)).attr('class','cell cell_type_' + self.collection.models[id - 1].get('cellType'));
+                        if(self.collection.models[id - 1].get('cellType') == 9) {
+                            checkAround(self, id - 1);
+                        }
+                    }
+                }
+                if(id + 1 < self.collection.length && (id + 1) % cell_cnt_x !== 0) {    //右のセルをチェック
+                    if(self.collection.models[id + 1].get('cellType') != 99 && self.collection.models[id + 1].get('isOpened') == false) {
+                        self.collection.models[id + 1].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id + 1)).attr('class','cell cell_type_' + self.collection.models[id + 1].get('cellType'));
+                        if(self.collection.models[id + 1].get('cellType') == 9) {
+                            checkAround(self, id + 1);
+                        }
+                    }
+                }
+                if(id + cell_cnt_x < self.collection.length) {    //下のセルをチェック
+                    if(self.collection.models[id + cell_cnt_x].get('cellType') != 99 && self.collection.models[id + cell_cnt_x].get('isOpened') == false) {
+                        self.collection.models[id + cell_cnt_x].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id + cell_cnt_x)).attr('class','cell cell_type_' + self.collection.models[id + cell_cnt_x].get('cellType'));
+                        if(self.collection.models[id + cell_cnt_x].get('cellType') == 9) {
+                            checkAround(self, id + cell_cnt_x);
+                        }
+                    }
+                }
+            })(this, this.model.get('id'));
         }
     });
 })(this);
@@ -252,7 +275,7 @@ var MINESWEEPER = MINESWEEPER || {};
  * カウントアップの開始と停止
  * 
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
  
     ns.TimeStatusView = Backbone.View.extend({
@@ -261,7 +284,7 @@ var MINESWEEPER = MINESWEEPER || {};
             sec: 0,
             timerId: undefined,
         },
-        initialize: function(options){
+        initialize: function(options) {
         },
         start: function() {
             var self = this;
@@ -271,8 +294,6 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         stop: function() {
             window.clearInterval(this.properties.timerId);
-            alert('GAME OVER!');
-            window.location.reload();
         },
         countUp: function() {
             var prop = this.properties;
@@ -299,7 +320,7 @@ var MINESWEEPER = MINESWEEPER || {};
  * 　└CellView
  * 
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {},
         prop;
  
@@ -307,7 +328,7 @@ var MINESWEEPER = MINESWEEPER || {};
         properties: {
             is_started: false,
         },
-        initialize: function(options){
+        initialize: function(options) {
             this.options = options;
             this.initCellListView();
             this.initTimeStatusView();
@@ -317,6 +338,7 @@ var MINESWEEPER = MINESWEEPER || {};
                 el: this.options.cellListEl
             });
             this.cellListView.collection.on('burst', this.gameOver);
+            this.cellListView.collection.on('clear', this.gameClear);
         },
         initTimeStatusView: function() {
             this.timeStatusView = new ns.TimeStatusView({
@@ -336,6 +358,13 @@ var MINESWEEPER = MINESWEEPER || {};
             // gameOver処理
             this.timeStatusView = new ns.TimeStatusView();
             this.timeStatusView.stop();
+            setTimeout("alert('GAME OVER!')",200);
+        },
+        gameClear: function() {
+            // gameClear処理
+            this.timeStatusView = new ns.TimeStatusView();
+            this.timeStatusView.stop();
+            setTimeout("alert('GAME CLEAR!')",200);
         }
     });
 })(this);
@@ -343,7 +372,7 @@ var MINESWEEPER = MINESWEEPER || {};
 /**
  * GameController起動
  */
-(function(window){
+(function(window) {
     var gameController = new MINESWEEPER.GameController({
         el: $('#minesweeper'),
         cellListEl: $('#cell_list'),
