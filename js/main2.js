@@ -131,16 +131,16 @@ var MINESWEEPER = MINESWEEPER || {};
             var interval = 300;
             //旗を立てる処理（セル長押しでイベント発生）
             this.$el.bind('touchstart',function() {
-                if(self.model.get('isOpened') == false) {
+                if(self.model.get('isOpened') === false) {
                     timer = setTimeout(function() {
                         self.trigger('cellHold', event, self);
                         self.$el.off('click');  //旗消去と同時にclickイベントが発生しない様に一旦イベントをアンバインドする
-                        setTimeout(function() {self.$el.on('click',$.proxy(self.clickHandler, self))}, 400);    //時間差でclickイベント復活
+                        setTimeout(function() {self.$el.on('click',$.proxy(self.clickHandler, self));}, 400);    //時間差でclickイベント復活
                     }, interval);
 
-                    function clearFunction() {
+                    var clearFunction = function() {
                         clearTimeout(timer);
-                    }
+                    };
                     self.$el.bind('touchend touchmove touchcancel', clearFunction);
                 }
             });
@@ -152,7 +152,7 @@ var MINESWEEPER = MINESWEEPER || {};
             this.on('open', $.proxy(this.open, this));
         },
         clickHandler: function(event) {
-            if(this.model.get('flaged') == false) {
+            if(this.model.get('flaged') === false) {
                 this.trigger('cellClick', event, this);
                 this.$el.attr('class', this.render().className);
                 this.trigger('open');
@@ -160,7 +160,6 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         open: function() {
             this.$el.addClass('opened');
-            this.model.set('isOpened', true);
         },
         render: function() {
             return this;
@@ -198,19 +197,19 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         cellClickHandler: function(event, cellView) {
             cellView.className = 'cell cell_type_' + cellView.model.get('cellType');
-            if(this.model.get('isOpened') == false) {
+            if(this.model.get('isOpened') === false) {
+                this.model.set('isOpened', true);
                 this.collection.properties.openedCount ++;
             }
             if(cellView.model.get('cellType') === 99) {
                 this.collection.trigger('burst');
             }
-            console.log(this.collection.properties.openedCount);
-            if(((this.collection.properties.cellX * this.collection.properties.cellY) - this.collection.properties.mines) + 1 == this.collection.properties.openedCount) {
+            if((this.collection.properties.cellX * this.collection.properties.cellY) - this.collection.properties.mines === this.collection.properties.openedCount) {
                 this.collection.trigger('clear');
             }
         },
         cellHoldHandler: function(event, cellView) {
-            if(cellView.model.get('flaged') == false) {
+            if(cellView.model.get('flaged') === false) {
                 cellView.$el.attr('class','cell cell_type_100');
                 cellView.model.set('flaged',true);
             } else {
@@ -224,7 +223,7 @@ var MINESWEEPER = MINESWEEPER || {};
             var id = this.model.get('id');
             (function checkAround(self, id) {
                 if(id - cell_cnt_x >= 0) {    //上のセルをチェック
-                    if(self.collection.models[id - cell_cnt_x].get('cellType') != 99 && self.collection.models[id - cell_cnt_x].get('isOpened') == false) {
+                    if(self.collection.models[id - cell_cnt_x].get('cellType') != 99 && self.collection.models[id - cell_cnt_x].get('isOpened') === false) {
                         self.collection.models[id - cell_cnt_x].set('isOpened', true);
                         self.collection.properties.openedCount ++;
                         $('#' + (id - cell_cnt_x)).attr('class','cell cell_type_' + self.collection.models[id - cell_cnt_x].get('cellType'));
@@ -234,7 +233,7 @@ var MINESWEEPER = MINESWEEPER || {};
                     }
                 }
                 if(id - 1 >= 0 && id % cell_cnt_x !== 0) {    //左のセルをチェック
-                    if(self.collection.models[id - 1].get('cellType') != 99 && self.collection.models[id - 1].get('isOpened') == false) {
+                    if(self.collection.models[id - 1].get('cellType') != 99 && self.collection.models[id - 1].get('isOpened') === false) {
                         self.collection.models[id - 1].set('isOpened', true);
                         self.collection.properties.openedCount ++;
                         $('#' + (id - 1)).attr('class','cell cell_type_' + self.collection.models[id - 1].get('cellType'));
@@ -244,7 +243,7 @@ var MINESWEEPER = MINESWEEPER || {};
                     }
                 }
                 if(id + 1 < self.collection.length && (id + 1) % cell_cnt_x !== 0) {    //右のセルをチェック
-                    if(self.collection.models[id + 1].get('cellType') != 99 && self.collection.models[id + 1].get('isOpened') == false) {
+                    if(self.collection.models[id + 1].get('cellType') != 99 && self.collection.models[id + 1].get('isOpened') === false) {
                         self.collection.models[id + 1].set('isOpened', true);
                         self.collection.properties.openedCount ++;
                         $('#' + (id + 1)).attr('class','cell cell_type_' + self.collection.models[id + 1].get('cellType'));
@@ -254,7 +253,7 @@ var MINESWEEPER = MINESWEEPER || {};
                     }
                 }
                 if(id + cell_cnt_x < self.collection.length) {    //下のセルをチェック
-                    if(self.collection.models[id + cell_cnt_x].get('cellType') != 99 && self.collection.models[id + cell_cnt_x].get('isOpened') == false) {
+                    if(self.collection.models[id + cell_cnt_x].get('cellType') != 99 && self.collection.models[id + cell_cnt_x].get('isOpened') === false) {
                         self.collection.models[id + cell_cnt_x].set('isOpened', true);
                         self.collection.properties.openedCount ++;
                         $('#' + (id + cell_cnt_x)).attr('class','cell cell_type_' + self.collection.models[id + cell_cnt_x].get('cellType'));
@@ -349,7 +348,7 @@ var MINESWEEPER = MINESWEEPER || {};
             'click': 'gameStart'
         },
         gameStart: function() {
-            if(this.properties.is_started == false) {
+            if(this.properties.is_started === false) {
                 this.timeStatusView.start();
             }
             this.properties.is_started = true;
