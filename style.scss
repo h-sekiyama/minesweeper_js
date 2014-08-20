@@ -1,7 +1,12 @@
+body {
+  -webkit-touch-callout:none; // リンク長押しのポップアップ(※1)を無効化
+  -webkit-user-select:none; // テキスト長押しの選択ボックス(※2)を無効化
+}
+
 #cell_list {
 	width: 270px;
 	height: 270px;
-	margin: 3px auto;
+	margin-left: -24px;
 	.cell {
 		width: 30px;
 		height: 30px;
@@ -50,6 +55,10 @@
 		&.cell_type_99 {
 			background: url('../images.gif');
 			background-position: -300px 0;
+		}
+		&.cell_type_100 {
+			background: url('../images.gif');
+			background-position: -330px 0;
 		}
 	}
 }

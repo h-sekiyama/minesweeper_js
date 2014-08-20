@@ -37,10 +37,7 @@ var MINESWEEPER = MINESWEEPER || {};
             }
             this.setMines();
             this.setCellType();
-            var num = 0;
-            var loop = 1;
-            var group = 0;
-            this.setGroup(num, loop, group);
+            this.setGroup();
             return this.models;
         },
         setMines: function() {
@@ -110,57 +107,68 @@ var MINESWEEPER = MINESWEEPER || {};
                 tmp_bomb_cnt = 0;
             }
         },
-        setGroup: function(num, loop, group) {
-            // group設定
+        aroundCheck: function(num, group, checkCell, checkCount) {
+            // console.log(checkCell);
+            // console.log(checkCell.length);
+            // console.log(checkCount);
+            // 周囲に安全なセル（cellType=9）があるか判定する処理
+            var self = this;
             var cell_cnt_x = this.properties.cellX;
             var cell_cnt_y = this.properties.cellY;
-            loop_label: while(1) {         
-                // console.log('num=' + num);
-                // console.log('loop=' + loop);
-                // console.log('group=' + group);
-                for(num; num < loop; num++) {
-                    if(this.models[num].get('cellType') == 9) {
+            if(num - cell_cnt_x >= 0) {    //上のセルをチェック
+                if(this.models[num - cell_cnt_x].get('cellType') == 9 && this.models[num - cell_cnt_x].get('group') === 0) {
+                    checkCell.push(this.models[num - cell_cnt_x]);
+                    this.models[num - cell_cnt_x].set('group', group);
+                }
+            }
+            if(num - 1 >= 0 && num % cell_cnt_x !== 0) {   //左のセルをチェック
+                this.models[num - 1].set('group', group);
+                if(this.models[num - 1].get('cellType') == 9 && this.models[num - 1].get('group') === 0) {
+                    checkCell.push(this.models[num - 1]);
+                    this.models[num - 1].set('group', group);
+                }
+            }
+            if(num + 1 < this.length && (num + 1) % cell_cnt_x !== 0) {  //右のセルをチェック
+                this.models[num + 1].set('group', group);
+                if(this.models[num + 1].get('cellType') == 9 && this.models[num + 1].get('group') === 0) {
+                    checkCell.push(this.models[num + 1]);
+                    this.models[num + 1].set('group', group);
+                }
+            }
+            if(num + cell_cnt_x < this.length) { //下のセルをチェック
+                this.models[num + cell_cnt_x].set('group', group);
+                if(this.models[num + cell_cnt_x].get('cellType') == 9 && this.models[num + cell_cnt_x].get('group') === 0) {
+                    checkCell.push(this.models[num + cell_cnt_x]);
+                    this.models[num + cell_cnt_x].set('group', group);
+                }
+            }
+            if(checkCell.length > checkCount) {
+                checkCell.forEach(function(num_temp) {
+                    checkCount ++;
+                    self.aroundCheck(num_temp, group, checkCell, checkCount);
+                });
+            }
+            checkCell = [];
+        },
+        setGroup: function() {
+            // group設定
+            var num = 0;    //今のセル座標（0〜80）
+            var group = 1;  //グループID
+            var checkCount = 0; //チェックした回数
+            var checkCell = [0]; //チェックする必要のあるセルの座標
+            var cell_cnt_x = this.properties.cellX;
+            var cell_cnt_y = this.properties.cellY;
+            while(checkCell.length > checkCount) {         
+                console.log('num=' + num);
+                console.log('group=' + group);
+                console.log('checkCell=' + checkCell);
+                console.log('checkCount=' + checkCount);
+                for(num; num < cell_cnt_x * cell_cnt_y; num++) {
+                    if(this.models[num].get('cellType') == 9 && this.models[num].get('group') === 0) {
                         this.models[num].set('group',group);
-                        if(num - cell_cnt_x >= 0) {    //上のセルをチェック
-                            this.models[num - cell_cnt_x].set('group', group);
-                            if(this.models[num - cell_cnt_x].get('cellType') == 9) {
-                                // console.log('上group ' + this.models[num - cell_cnt_x].get('group'));
-                                if(this.models[num - cell_cnt_x].get('group') === 0) {
-                                    this.setGroup(num - cell_cnt_x, loop, group);
-                                }
-                            }
-                        }
-                        if(num - 1 >= 0 && num % cell_cnt_x !== 0) {   //左のセルをチェック
-                            this.models[num - 1].set('group', group);
-                            if(this.models[num - 1].get('cellType') == 9) {
-                                // console.log('左group ' + this.models[num - 1].get('group'));
-                                if(this.models[num - 1].get('group') === 0) {
-                                    this.setGroup(num - 1, loop, group);
-                                }
-                            }
-                        }
-                        if(num + 1 < this.length && (num + 1) % cell_cnt_x !== 0) {  //右のセルをチェック
-                            this.models[num + 1].set('group', group);
-                            if(this.models[num + 1].get('cellType') == 9) {
-                                // console.log('右group ' + this.models[num + 1].get('group'));
-                                if(this.models[num + 1].get('group') === 0) {
-                                    this.setGroup(num + 1, loop, group);
-                                }
-                            }
-                        }
-                        if(num + cell_cnt_x < this.length) { //下のセルをチェック
-                            this.models[num + cell_cnt_x].set('group', group);
-                            if(this.models[num + cell_cnt_x].get('cellType') == 9) {
-                                // console.log('下group ' + this.models[num + cell_cnt_x].get('group'));
-                                if(this.models[num + cell_cnt_x].get('group') === 0) {
-                                    this.setGroup(num + cell_cnt_x, loop, group);
-                                }
-                            }
-                        }
+                        this.aroundCheck(num, group, checkCell, checkCount);
                     }
                 }
-                group ++;
-                if(num >= loop) break;
             }
         }
     });

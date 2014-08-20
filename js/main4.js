@@ -9,14 +9,15 @@ var MINESWEEPER = MINESWEEPER || {};
  * CellModelで初期値を設定
  * CellCollectionで、爆弾設置と各Cellのtypeとgroupを設定
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
 
     ns.CellModel = Backbone.Model.extend({
         defaults: {
-            cellType: 0,    //0:通常,1〜8:周囲に爆弾あり,9:タップ済,99爆弾
+            cellType: 0,    //0:通常,1〜8:周囲に爆弾あり,9:タップ済,99:爆弾,100:旗
             group: 0,
-            isOpened: false
+            isOpened: false,
+            flaged: false
         }
     });
 
@@ -171,16 +172,33 @@ var MINESWEEPER = MINESWEEPER || {};
  * 
  * CellのDOM生成とイベント設定、表示変更
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
 
     ns.CellView = Backbone.View.extend({
         tagName: 'li',
         className: 'cell',
-        initialize: function(options){
+        initialize: function(options) {
+            var self = this;
             this.model = options;
             this.modelEvents();
             this.render();
+            var interval = 300;
+            //旗を立てる処理（セル長押しでイベント発生）
+            this.$el.bind('touchstart',function() {
+                if(self.model.get('isOpened') == false) {
+                    timer = setTimeout(function() {
+                        self.trigger('cellHold', event, self);
+                        self.$el.off('click');  //旗消去と同時にclickイベントが発生しない様に一旦イベントをアンバインドする
+                        setTimeout(function() {self.$el.on('click',$.proxy(self.clickHandler, self))}, 400);    //時間差でclickイベント復活
+                    }, interval);
+
+                    function clearFunction() {
+                        clearTimeout(timer);
+                    }
+                    self.$el.bind('touchend touchmove touchcancel', clearFunction);
+                }
+            });
         },
         events: {
             'click': 'clickHandler',
@@ -188,13 +206,16 @@ var MINESWEEPER = MINESWEEPER || {};
         modelEvents: function() {
             this.on('open', $.proxy(this.open, this));
         },
-        clickHandler: function(event){
-            this.trigger('cellClick', event, this);
-            this.$el.attr('class', this.render().className);
-            this.trigger('open');
+        clickHandler: function(event) {
+            if(this.model.get('flaged') == false) {
+                this.trigger('cellClick', event, this);
+                this.$el.attr('class', this.render().className);
+                this.trigger('open');
+            }
         },
         open: function() {
             this.$el.addClass('opened');
+            this.model.set('isOpened', true);
         },
         render: function() {
             return this;
@@ -210,34 +231,43 @@ var MINESWEEPER = MINESWEEPER || {};
  *    同一groupのisOpendプロパティをtrue化
  *    cellTypeが地雷だったらburstイベントを発行
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
  
     ns.CellListView = Backbone.View.extend({
-        initialize: function(){
+        initialize: function() {
             this.collection = new ns.CellCollection();
             this.render();
         },
         render: function() {
             var lis = [];
-            _.each(this.collection,function(i,id,model){
+            _.each(this.collection,function(i,id,model) {
                 lis[id] = new ns.CellView(model.models[id]);
                 lis[id].on('cellClick', this.cellClickHandler);
+                lis[id].on('cellHold', this.cellHoldHandler);
                 this.$el.append(lis[id].el);
             }, this);
         },
-        cellClickHandler: function(event, cellView){
-            if(cellView.model.get('cellType') === 99){
+        cellClickHandler: function(event, cellView) {
+            cellView.className = 'cell cell_type_' + cellView.model.get('cellType');
+            if(cellView.model.get('cellType') === 99) {
                 this.collection.trigger('burst');
             }
-            cellView.className = 'cell cell_type_' + cellView.model.get('cellType');
-
             // this.cellGroupOpen();
         },
-        cellGroupOpen: function(cellView){
+        cellHoldHandler: function(event, cellView) {
+            if(cellView.model.get('flaged') == false) {
+                cellView.$el.attr('class','cell cell_type_100');
+                cellView.model.set('flaged',true);
+            } else {
+                cellView.$el.attr('class','cell cell_type_0');
+                cellView.model.set('flaged',false);
+            }
+        },
+        cellGroupOpen: function(cellView) {
             var group = cellView.model.get('group');
-            _(this.collection).each(function(model, index){
-                if(model.get('group')===group){
+            _(this.collection).each(function(model, index) {
+                if(model.get('group')===group) {
                     model.set('isOpened', true);
                 }
             }, this);
@@ -252,7 +282,7 @@ var MINESWEEPER = MINESWEEPER || {};
  * カウントアップの開始と停止
  * 
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {};
  
     ns.TimeStatusView = Backbone.View.extend({
@@ -261,7 +291,7 @@ var MINESWEEPER = MINESWEEPER || {};
             sec: 0,
             timerId: undefined,
         },
-        initialize: function(options){
+        initialize: function(options) {
         },
         start: function() {
             var self = this;
@@ -271,8 +301,6 @@ var MINESWEEPER = MINESWEEPER || {};
         },
         stop: function() {
             window.clearInterval(this.properties.timerId);
-            alert('GAME OVER!');
-            window.location.reload();
         },
         countUp: function() {
             var prop = this.properties;
@@ -299,7 +327,7 @@ var MINESWEEPER = MINESWEEPER || {};
  * 　└CellView
  * 
  */
-(function(window){
+(function(window) {
     var ns = window.MINESWEEPER || {},
         prop;
  
@@ -307,7 +335,7 @@ var MINESWEEPER = MINESWEEPER || {};
         properties: {
             is_started: false,
         },
-        initialize: function(options){
+        initialize: function(options) {
             this.options = options;
             this.initCellListView();
             this.initTimeStatusView();
@@ -336,6 +364,7 @@ var MINESWEEPER = MINESWEEPER || {};
             // gameOver処理
             this.timeStatusView = new ns.TimeStatusView();
             this.timeStatusView.stop();
+            setTimeout("alert('GAME OVER!')",200);
         }
     });
 })(this);
@@ -343,7 +372,7 @@ var MINESWEEPER = MINESWEEPER || {};
 /**
  * GameController起動
  */
-(function(window){
+(function(window) {
     var gameController = new MINESWEEPER.GameController({
         el: $('#minesweeper'),
         cellListEl: $('#cell_list'),
