@@ -232,6 +232,26 @@ var MINESWEEPER = MINESWEEPER || {};
                         }
                     }
                 }
+                if(id - (cell_cnt_x + 1) >= 0 && id % cell_cnt_x !== 0) {    //左上のセルをチェック
+                    if(self.collection.models[id - (cell_cnt_x + 1)].get('cellType') != 99 && self.collection.models[id - (cell_cnt_x + 1)].get('isOpened') === false) {
+                        self.collection.models[id - (cell_cnt_x + 1)].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id - (cell_cnt_x + 1))).attr('class','cell cell_type_' + self.collection.models[id - (cell_cnt_x + 1)].get('cellType'));
+                        if(self.collection.models[id - (cell_cnt_x + 1)].get('cellType') == 9) {
+                            checkAround(self, id - (cell_cnt_x + 1));
+                        }
+                    }
+                }
+                if(id - (cell_cnt_x - 1) >= 0 && (id + 1) % cell_cnt_x !== 0) {    //右上のセルをチェック
+                    if(self.collection.models[id - (cell_cnt_x - 1)].get('cellType') != 99 && self.collection.models[id - (cell_cnt_x - 1)].get('isOpened') === false) {
+                        self.collection.models[id - (cell_cnt_x - 1)].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id - (cell_cnt_x - 1))).attr('class','cell cell_type_' + self.collection.models[id - (cell_cnt_x - 1)].get('cellType'));
+                        if(self.collection.models[id - (cell_cnt_x - 1)].get('cellType') == 9) {
+                            checkAround(self, id - (cell_cnt_x - 1));
+                        }
+                    }
+                }
                 if(id - 1 >= 0 && id % cell_cnt_x !== 0) {    //左のセルをチェック
                     if(self.collection.models[id - 1].get('cellType') != 99 && self.collection.models[id - 1].get('isOpened') === false) {
                         self.collection.models[id - 1].set('isOpened', true);
@@ -259,6 +279,26 @@ var MINESWEEPER = MINESWEEPER || {};
                         $('#' + (id + cell_cnt_x)).attr('class','cell cell_type_' + self.collection.models[id + cell_cnt_x].get('cellType'));
                         if(self.collection.models[id + cell_cnt_x].get('cellType') == 9) {
                             checkAround(self, id + cell_cnt_x);
+                        }
+                    }
+                }
+                if(id + (cell_cnt_x - 1) < self.collection.length && id % cell_cnt_x !== 0) {    //左下のセルをチェック
+                    if(self.collection.models[id + (cell_cnt_x - 1)].get('cellType') != 99 && self.collection.models[id + (cell_cnt_x - 1)].get('isOpened') === false) {
+                        self.collection.models[id + (cell_cnt_x - 1)].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id + (cell_cnt_x - 1))).attr('class','cell cell_type_' + self.collection.models[id + (cell_cnt_x - 1)].get('cellType'));
+                        if(self.collection.models[id + (cell_cnt_x - 1)].get('cellType') == 9) {
+                            checkAround(self, id + (cell_cnt_x - 1));
+                        }
+                    }
+                }
+                if(id + (cell_cnt_x + 1) < self.collection.length && (id + 1) % cell_cnt_x !== 0) {    //右下のセルをチェック
+                    if(self.collection.models[id + (cell_cnt_x + 1)].get('cellType') != 99 && self.collection.models[id + (cell_cnt_x + 1)].get('isOpened') === false) {
+                        self.collection.models[id + (cell_cnt_x + 1)].set('isOpened', true);
+                        self.collection.properties.openedCount ++;
+                        $('#' + (id + (cell_cnt_x + 1))).attr('class','cell cell_type_' + self.collection.models[id + (cell_cnt_x + 1)].get('cellType'));
+                        if(self.collection.models[id + (cell_cnt_x + 1)].get('cellType') == 9) {
+                            checkAround(self, id + (cell_cnt_x + 1));
                         }
                     }
                 }
