@@ -2,14 +2,22 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
-	<script type="text/javascript" src="js/main.js"></script>
+    <meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
 	<title>JSマインスイーパー</title>
 </head>
 <body>
-	経過時間：<span id="timer_m">0</span>分<span id="timer_s">0</span>秒<br>
-	<span id="game_over"></span><br>
-	<div id="cell" class="cell"></div>
+	<div id="minesweeper">
+		<div id="time_status">0分0秒</div>
+		<ul id="cell_list"></ul>
+	</div>
+    <button onclick="window.location.reload();">やり直し</button><br>
+    長押し：旗を立てる<br>
+    もっかい長押し：旗を消す<br>
+    <span style="color:red;">※注：touchイベント検知出来る設定じゃないと正しく動きません</span>
+    <script src="js/jquery-2.1.0.min.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/backbone-min.js"></script>
+    <script src="js/main2.js"></script>
 </body>
 </html>

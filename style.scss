@@ -1,56 +1,64 @@
-.cell {
+body {
+  -webkit-touch-callout:none; // リンク長押しのポップアップ(※1)を無効化
+  -webkit-user-select:none; // テキスト長押しの選択ボックス(※2)を無効化
+}
+
+#cell_list {
 	width: 270px;
 	height: 270px;
-	margin: 3px auto;
-	>div {
+	margin-left: -24px;
+	.cell {
 		width: 30px;
 		height: 30px;
 		display: inline-block;
 		margin: -4px 0;
 		-webkit-box-sizing: border-box;
-	}
-	&__0 {
+		list-style: none;
 		background: url('../images.gif');
 		background-position: 0 0;
-	}
-	&__1 {
-		background: url('../images.gif');
-		background-position: -30px 0;
-	}
-	&__2 {
-		background: url('../images.gif');
-		background-position: -60px 0;
-	}
-	&__3 {
-		background: url('../images.gif');
-		background-position: -90px 0;
-	}
-	&__4 {
-		background: url('../images.gif');
-		background-position: -120px 0;
-	}
-	&__5 {
-		background: url('../images.gif');
-		background-position: -150px 0;
-	}
-	&__6 {
-		background: url('../images.gif');
-		background-position: -180px 0;
-	}
-	&__7 {
-		background: url('../images.gif');
-		background-position: -210px 0;
-	}
-	&__8 {
-		background: url('../images.gif');
-		background-position: -240px 0;
-	}
-	&__9 {
-		background: url('../images.gif');
-		background-position: -270px 0;
-	}
-	&__99 {
-		background: url('../images.gif');
-		background-position: -300px 0;
+		&.cell_type_1 {
+			background: url('../images.gif');
+			background-position: -30px 0;
+		}
+		&.cell_type_2 {
+			background: url('../images.gif');
+			background-position: -60px 0;
+		}
+		&.cell_type_3 {
+			background: url('../images.gif');
+			background-position: -90px 0;
+		}
+		&.cell_type_4 {
+			background: url('../images.gif');
+			background-position: -120px 0;
+		}
+		&.cell_type_5 {
+			background: url('../images.gif');
+			background-position: -150px 0;
+		}
+		&.cell_type_6 {
+			background: url('../images.gif');
+			background-position: -180px 0;
+		}
+		&.cell_type_7 {
+			background: url('../images.gif');
+			background-position: -210px 0;
+		}
+		&.cell_type_8 {
+			background: url('../images.gif');
+			background-position: -240px 0;
+		}
+		&.cell_type_9 {
+			background: url('../images.gif');
+			background-position: -270px 0;
+		}
+		&.cell_type_99 {
+			background: url('../images.gif');
+			background-position: -300px 0;
+		}
+		&.cell_type_100 {
+			background: url('../images.gif');
+			background-position: -330px 0;
+		}
 	}
 }
